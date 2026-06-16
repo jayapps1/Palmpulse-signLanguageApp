@@ -1,0 +1,30 @@
+# Compiled output
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Logs
+logs/
+*.log
+
+# Environment variables / secrets
+application-dev.yml
+application-prod.yml
+*.properties
+.env
+
+# Node modules (admin-web)
+admin-web/node_modules/
+admin-web/build/
+admin-web/dist/
+
+# Mobile app build
+mobile-app/build/
+mobile-app/.gradle/

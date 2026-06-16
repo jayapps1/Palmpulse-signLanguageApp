@@ -1,0 +1,44 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: aisignup
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/palmpulsedb
+    username: postgres
+    password: 0697
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    org.springframework: INFO
+    com.palmpulse: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET_PALMPULSE:lo0TetUz0A8MlE3DRCTkB/wonxyCVH8MeRnovMacQHo=}
+  expiration: 86400000  # 24 hours in milliseconds
+
+springdoc:
+  api-docs:
+    enabled: true   # default true
+  swagger-ui:
+    enabled: true   # default true
+    path: /swagger-ui.html
+
+openai:
+  api:
+    key: ${GEMINI_API_KEY}
