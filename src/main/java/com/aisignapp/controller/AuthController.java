@@ -115,7 +115,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token, "Bearer", user.getUserId(), user.getEmail(), role));
     }
 
-    // ── Registration (unchanged) ──
+    // ── Registration  ──
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {

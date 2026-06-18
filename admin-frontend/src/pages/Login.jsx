@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 
@@ -14,6 +14,77 @@ export default function Login() {
   const [tempToken, setTempToken] = useState('');
   const [twoFACode, setTwoFACode] = useState('');
   const [maskedPhone, setMaskedPhone] = useState('');
+
+  // ── Six‑digit code state & refs (only used during 2FA) ──
+  const [codeDigits, setCodeDigits] = useState(Array(6).fill(''));
+  const inputRefs = useRef([]);
+
+  // Keep the joined code in sync with individual digits
+  useEffect(() => {
+    setTwoFACode(codeDigits.join(''));
+  }, [codeDigits]);
+
+  // Focus helpers
+  const focusNext = (index) => {
+    if (index < 5 && inputRefs.current[index + 1]) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+  const focusPrev = (index) => {
+    if (index > 0 && inputRefs.current[index - 1]) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handleDigitChange = (index, value) => {
+    const digit = value.replace(/\D/g, '').slice(0, 1);
+    if (digit) {
+      const newDigits = [...codeDigits];
+      newDigits[index] = digit;
+      setCodeDigits(newDigits);
+      focusNext(index);
+    }
+  };
+
+  const handleDigitKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (codeDigits[index] === '') {
+        // Move back and clear previous box
+        const newDigits = [...codeDigits];
+        if (index > 0) {
+          newDigits[index - 1] = '';
+          setCodeDigits(newDigits);
+          focusPrev(index);
+        }
+      } else {
+        const newDigits = [...codeDigits];
+        newDigits[index] = '';
+        setCodeDigits(newDigits);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      focusPrev(index);
+    } else if (e.key === 'ArrowRight') {
+      focusNext(index);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted.length) {
+      const newDigits = [...codeDigits];
+      for (let i = 0; i < 6; i++) {
+        newDigits[i] = pasted[i] || '';
+      }
+      setCodeDigits(newDigits);
+      const lastIndex = pasted.length - 1;
+      if (lastIndex < 5) {
+        inputRefs.current[lastIndex + 1]?.focus();
+      } else {
+        inputRefs.current[5]?.focus();
+      }
+    }
+  };
 
   const navigate = useNavigate();
 
@@ -84,7 +155,7 @@ export default function Login() {
     }
   };
 
-  // Step 2 – 2FA code verification
+  // Step 2 – 2FA code verification (using the six‑digit code)
   const handle2FASubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -137,28 +208,63 @@ export default function Login() {
             </div>
           )}
 
-          <input
-            type="text"
-            placeholder="000000"
-            value={twoFACode}
-            onChange={e => setTwoFACode(e.target.value)}
-            maxLength={6}
-            required
+          {/* Six square digit inputs */}
+          <div
             style={{
-              ...inputStyle,
-              textAlign: 'center',
-              letterSpacing: '0.5rem',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '0.75rem',
             }}
-          />
+            onPaste={handlePaste}
+          >
+            {codeDigits.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={(el) => (inputRefs.current[idx] = el)}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleDigitChange(idx, e.target.value)}
+                onKeyDown={(e) => handleDigitKeyDown(idx, e)}
+                onFocus={(e) => {
+                  e.target.select();
+                  e.target.style.borderColor = '#6EB7EA';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(110, 183, 234, 0.2)';
+                  e.target.style.background = '#FFFFFF';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#E2E8F0';
+                  e.target.style.boxShadow = 'none';
+                  e.target.style.background = '#F8FAFC';
+                }}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  textAlign: 'center',
+                  fontSize: '1.2rem',
+                  fontWeight: 600,
+                  color: '#0A2956',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '8px',
+                  background: '#F8FAFC',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  transition: 'border 0.2s, box-shadow 0.2s, background 0.2s',
+                }}
+              />
+            ))}
+          </div>
 
-          <button type="submit" disabled={loading} style={buttonStyle(loading)}>
+          <button type="submit" disabled={loading || twoFACode.length !== 6} style={buttonStyle(loading)}>
             {loading ? 'Verifying…' : 'Verify & Login'}
           </button>
 
           <p style={{ textAlign: 'center' }}>
             <button
               type="button"
-              onClick={() => { setRequires2FA(false); setError(''); }}
+              onClick={() => { setRequires2FA(false); setError(''); setCodeDigits(Array(6).fill('')); }}
               style={{
                 background: 'none', border: 'none', color: '#0A2956',
                 cursor: 'pointer', textDecoration: 'underline', fontSize: '0.9rem',
