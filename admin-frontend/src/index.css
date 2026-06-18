@@ -1,0 +1,72 @@
+:root {
+  --color-dark-navy:  #0A2956;
+  --color-medium-blue: #135290;
+  --color-soft-sky:   #A8D8F5;
+  --color-very-light: #D2EFF9;
+  --color-bright-blue: #6EB7EA;
+
+  --primary:       var(--color-dark-navy);
+  --primary-light: var(--color-medium-blue);
+  --accent:        var(--color-bright-blue);
+  --bg:            white;                     /* ← changed to white */
+  --surface:       white;
+  --text-on-primary: white;
+  --text:          var(--color-dark-navy);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: var(--bg);   /* now white */
+  color: var(--text);
+}
+
+/* ===== Responsive Utilities ===== */
+@media (max-width: 768px) {
+  /* Reduce large headings */
+  .hero-title {
+    font-size: 2rem !important;
+  }
+  .hero-subtitle {
+    font-size: 1rem !important;
+  }
+  .section-title {
+    font-size: 1.8rem !important;
+  }
+
+  /* Adjust padding for sections */
+  .section-padding {
+    padding: 3rem 1rem !important;
+  }
+
+  /* Make feature cards full width on small screens */
+  .feature-card {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Footer columns stack */
+  .footer-grid {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* Navbar responsive toggle */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .hamburger {
+    display: block !important;
+  }
+
+  .hero-section-mobile-center {
+    justify-content: center !important;
+  }
+}

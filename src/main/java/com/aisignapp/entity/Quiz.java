@@ -6,15 +6,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "quiz")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Quiz {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "quiz_id")
     private Long quizId;
 
@@ -24,6 +18,12 @@ public class Quiz {
 
     @Column(nullable = false, length = 200)
     private String title;
+
+    @Column(name = "is_final_quiz", nullable = false)
+    private boolean isFinalQuiz = false;
+
+    @Column(name = "number_of_questions")
+    private Integer numberOfQuestions; // if null, use all
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

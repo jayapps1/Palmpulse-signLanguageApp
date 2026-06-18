@@ -1,6 +1,6 @@
 package com.aisignapp.service;
 
-import com.aisignapp.annotation.Loggable;   // import the annotation
+import com.aisignapp.annotation.Loggable;
 import com.aisignapp.dto.request.LessonRequest;
 import com.aisignapp.dto.response.LessonResponse;
 import com.aisignapp.dto.response.SignResponse;
@@ -30,7 +30,6 @@ public class LessonService {
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final ProgressRepository progressRepository;
 
-    // Create lesson with course (admin or teacher)
     @Transactional
     @Loggable(action = "CREATE_LESSON", description = "A new lesson was created")
     public LessonResponse createLesson(LessonRequest request, Long userId) {
@@ -55,7 +54,6 @@ public class LessonService {
         return mapToResponse(lesson);
     }
 
-    // Update lesson (only creator or admin)
     @Transactional
     @Loggable(action = "UPDATE_LESSON", description = "A lesson was updated")
     public LessonResponse updateLesson(Long lessonId, LessonRequest request, Long userId, String userRole) {
@@ -80,7 +78,6 @@ public class LessonService {
         return mapToResponse(lesson);
     }
 
-    // Delete lesson (only creator or admin)
     @Transactional
     @Loggable(action = "DELETE_LESSON", description = "A lesson was deleted")
     public void deleteLesson(Long lessonId, Long userId, String userRole) {
@@ -93,7 +90,6 @@ public class LessonService {
         lessonRepository.deleteById(lessonId);
     }
 
-    // Add sign to lesson (creator or admin)
     @Transactional
     @Loggable(action = "ADD_SIGN_TO_LESSON", description = "A sign was added to a lesson")
     public void addSignToLesson(Long lessonId, Long signId, Long userId, String userRole) {
@@ -162,15 +158,15 @@ public class LessonService {
 
         // Update badge based on percentage
         BadgeLevel badge = getBadgeForPercentage(percentage);
+        // Override Platinum with Diamond – Platinum is only from quiz
+        if (badge == BadgeLevel.PLATINUM) {
+            badge = BadgeLevel.DIAMOND;
+        }
         activeEnrollment.setBadge(badge);
         courseEnrollmentRepository.save(activeEnrollment);
 
-        // Auto‑complete course when all lessons are done
-        if (completedCount == allLessons.size()) {
-            activeEnrollment.setStatus(EnrollmentStatus.COMPLETED);
-            activeEnrollment.setCompletedAt(LocalDateTime.now());
-            courseEnrollmentRepository.save(activeEnrollment);
-        }
+        // ─── Auto‑complete is REMOVED ───
+        // The course will be completed only after passing the final quiz (handled in QuizService).
     }
 
     // Helper to determine badge based on completion percentage
@@ -188,19 +184,16 @@ public class LessonService {
                 .collect(Collectors.toList());
     }
 
-    // Admin: all lessons
     public List<LessonResponse> getAllLessonsForAdmin() {
         return lessonRepository.findAllByOrderByCreatedAtDesc()
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // Teacher: own lessons (by createdBy)
     public List<LessonResponse> getOwnLessons(Long teacherId) {
         return lessonRepository.findByCreatedBy(teacherId)
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // Student: lessons from the course they are currently enrolled in (active enrollment)
     public List<LessonResponse> getLessonsForStudent(Long studentId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -213,7 +206,6 @@ public class LessonService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // Get a single lesson by ID with role‑based access
     public LessonResponse getLessonById(Long lessonId, User currentUser, String userRole) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
@@ -239,7 +231,6 @@ public class LessonService {
         throw new RuntimeException("Access denied");
     }
 
-    // Helper: get lessons of a specific course (for preview)
     public List<LessonResponse> getLessonsByCourse(Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -250,6 +241,7 @@ public class LessonService {
     private LessonResponse mapToResponse(Lesson lesson) {
         return new LessonResponse(
                 lesson.getLessonId(),
+                lesson.getCourse() != null ? lesson.getCourse().getId() : null,
                 lesson.getTitle(),
                 lesson.getDescription(),
                 lesson.getContent(),

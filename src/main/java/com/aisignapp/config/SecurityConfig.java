@@ -4,6 +4,7 @@ import com.aisignapp.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -35,17 +36,22 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())      // ✅ disable form login
+                .httpBasic(basic -> basic.disable())    // ✅ disable HTTP basic
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/auth/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // Admin only
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/uploads/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Student only
+                        .requestMatchers("/api/test-sms").permitAll()
+                        .requestMatchers("/api/enrollments/admin").hasAuthority("ROLE_ADMIN")     // ← changed
+                        .requestMatchers("/api/enrollments/teacher").hasAuthority("ROLE_TEACHER") // ← changed
                         .requestMatchers("/api/students/**").hasRole("STUDENT")
-                        // Teacher only
                         .requestMatchers("/api/teacher/**").hasRole("TEACHER")
-                        // Authenticated for lesson/sign access (role-specific logic inside services)
+                        .requestMatchers("/api/signs/upload").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers("/api/courses/**").authenticated()
                         .requestMatchers("/api/lessons/**", "/api/signs/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

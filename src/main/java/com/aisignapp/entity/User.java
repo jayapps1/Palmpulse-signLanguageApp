@@ -3,6 +3,7 @@ package com.aisignapp.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -21,7 +22,7 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "phone_number", length = 20)
+    @Column(name = "phone_number", length = 20, nullable = false, unique = true)
     private String phoneNumber;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -39,6 +40,15 @@ public class User {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "two_factor_code", length = 6)
+    private String twoFactorCode;
+
+    @Column(name = "two_factor_code_expiry")
+    private LocalDateTime twoFactorCodeExpiry;
+
+    @Column(name = "is_2fa_enabled", nullable = false)
+    private boolean is2faEnabled = false;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();

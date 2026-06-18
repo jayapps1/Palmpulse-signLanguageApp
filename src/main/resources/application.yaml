@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: aisignup
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
 
   datasource:
     url: jdbc:postgresql://localhost:5432/palmpulsedb
@@ -27,6 +31,8 @@ logging:
   level:
     org.springframework: INFO
     com.palmpulse: DEBUG
+    level:
+      org.springframework.security: DEBUG
 
 jwt:
   secret: ${JWT_SECRET_PALMPULSE:lo0TetUz0A8MlE3DRCTkB/wonxyCVH8MeRnovMacQHo=}
@@ -42,3 +48,13 @@ springdoc:
 openai:
   api:
     key: ${GEMINI_API_KEY}
+
+arkesel:
+  api:
+    key: cm9MRlp2dlVrQVBPRmxoV2lkRGY
+    sender-id: SkiliteEnt
+
+
+
+
+

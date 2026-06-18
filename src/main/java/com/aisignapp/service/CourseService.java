@@ -71,6 +71,14 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    // FIXED: use convertToResponse instead of mapToResponse
+    public List<CourseResponse> getOwnCourses(Long userId) {
+        return courseRepository.findByCreatedBy(userId)
+                .stream()
+                .map(this::convertToResponse)          // ← corrected
+                .collect(Collectors.toList());
+    }
+
     public CourseResponse getCourseById(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));

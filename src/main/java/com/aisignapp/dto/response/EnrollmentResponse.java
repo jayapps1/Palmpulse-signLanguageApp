@@ -8,8 +8,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EnrollmentResponse {
     private Long enrollmentId;
-    private Long teacherId;
-    private String teacherName;
-    private String status;
-    private LocalDateTime enrollmentDate;
+    private String studentName;
+    private String studentEmail;
+    private String courseTitle;
+    private String status;          // ACTIVE / COMPLETED
+    private String badge;           // e.g., SILVER, GOLD, PLATINUM
+    private LocalDateTime enrolledAt;
+    private LocalDateTime completedAt;
 }

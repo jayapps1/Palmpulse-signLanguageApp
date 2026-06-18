@@ -59,6 +59,17 @@ public class JwtService {
                 .compact();
     }
 
+    // ── Temporary token for 2FA (5 minutes) ──
+    public String generateTempToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .claim("2fa_required", true)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 300_000))   // 5 minutes
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));

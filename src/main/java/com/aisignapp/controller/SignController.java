@@ -12,8 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +29,48 @@ public class SignController {
 
     private final SignService signService;
     private final UserRepository userRepository;
+
+    // Upload video/image file for a sign (before linking to a sign record)
+    @PostMapping("/api/signs/upload")
+    public ResponseEntity<?> uploadSignFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("type") String type,   // "video" or "image"
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+
+        String contentType = file.getContentType();
+        if (type.equals("video") && (contentType == null || !contentType.startsWith("video/"))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Only video files are allowed for type=video"));
+        }
+        if (type.equals("image") && (contentType == null || !contentType.startsWith("image/"))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Only image files are allowed for type=image"));
+        }
+
+        String uploadDir = type.equals("video") ? "uploads/sign-videos/" : "uploads/sign-images/";
+        File directory = new File(uploadDir);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : (type.equals("video") ? ".mp4" : ".jpg");
+        String newFilename = UUID.randomUUID() + extension;
+
+        try {
+            Path filePath = Paths.get(uploadDir + newFilename);
+            Files.write(filePath, file.getBytes());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "File upload failed"));
+        }
+
+        String fileUrl = "/" + uploadDir + newFilename;   // e.g., /uploads/sign-videos/abc.mp4
+        return ResponseEntity.ok(Map.of("url", fileUrl));
+    }
 
     // Admin creates a sign
     @PostMapping("/api/admin/signs")

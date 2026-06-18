@@ -10,11 +10,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class LessonResponse {
     private Long lessonId;
+    private Long courseId;
     private String title;
     private String description;
     private String content;
     private DifficultyLevel difficultyLevel;
-    private LessonStatus status;          // now using enum
+    private LessonStatus status;
     private Long createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
